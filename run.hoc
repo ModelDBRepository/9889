@@ -1,0 +1,214 @@
+// $Id: run.hoc,v 1.105 2002/07/08 14:47:08 billl Exp $
+
+proc initMisc1 () {
+  system("date")
+  v_init=1000
+  forsec "TC" {
+    v = vrestTC }
+  forsec "RE" {
+    v = vrestRE }
+}
+
+func setother () { local iSum
+  if (ismembrane("cad")) {
+    kd_cad = cai*(-(cai * depth_cad *FARADAY) + cainf_cad * depth_cad * FARADAY - \
+                  5000*ica*taur_cad - depth_cad * FARADAY*kt_cad * taur_cad)
+    kd_cad = kd_cad/(cai*depth_cad*FARADAY - cainf_cad * depth_cad * FARADAY + \
+                     5000*ica*taur_cad)
+  }
+  iSum=0
+  if (ismembrane("iar")) iSum += iother 
+  if (ismembrane("ican")) iSum += iother 
+  return iSum
+}
+
+proc finishMisc () {
+  system("date")
+}
+
+printStep = 0.2
+
+proc clearsec () {forall { delete_section() }}
+
+byte_store = 1
+glpnum = 14
+double glp[glpnum]
+jj = 0
+for ii=-5,-1 { kk=2*10^ii
+  if (kk!=2e-3) { glp[jj]=kk jj=jj+1 }}
+for ii=0,10 { kk=0.001 + (ii)*2e-4
+  if (kk!=2e-3) { glp[jj]=kk jj=jj+1 }}
+for ii=0,glpnum-1 { printf("%g ",glp[ii]) }
+
+proc auto_run() { local ii,jj,kk
+  printf("begin auto_run\n")
+  for ii=0,glpnum-1 {
+    col.tc.sgaba.gmax = glp[ii]
+    for jj=0,glpnum-1 {
+      col.tc.sgabab.gmax = glp[jj]
+      sprint(temp_string_,"sgaba %g, sgabab %g",col.tc.sgaba.gmax,col.tc.sgabab.gmax)
+      run() 
+      pvall(temp_string_)
+      printf("%s: %s\n",output_file,temp_string_)
+      system("date")
+      runnum = runnum + 1
+    }
+  }  
+  printf("end auto_run\n")
+  update_emacs()
+}
+
+proc nprl() { 
+  printlist.remove_all()
+  new_printlist_item("col[0].tc[0].soma.v(0.5)") // 0
+  new_printlist_item("col[0].re.soma.v(0.5)")    // 1
+  new_printlist_item("col[0].re.soma.cai(0.5)")  // 2
+  new_printlist_item("col[0].re.soma.m_it2(0.5)")// 3
+  new_printlist_item("col[0].re.soma.h_it2(0.5)")// 4
+}
+nprl()
+
+objref box[7],g[6]
+
+proc fig7box () { 
+  for ii=0,5 { box[ii]=nil g[ii]=nil }
+  for ii=0,4 box[ii]=new VBox() 
+  for ii=5,6 box[ii]=new HBox() 
+  for ii=0,5 g[ii]=new Graph(0)
+  box[0].intercept(1)                   // VBOX
+  g[0].view(0,-90,tstop,130,0,0,500,50) // RE v graph
+  g[1].view(0,-90,tstop,130,0,0,500,50) // TC v graph
+  box[5].intercept(1)                   // HBOX
+  g[2].view(0,-90,tstop,130,0,0,100,100)  // mT vs hT during IBIs (a)
+  // box[2].map("",0,0,2,50)
+  xpanel("") xpanel()
+  box[1].intercept(1)                   // VBOX
+  g[3].view(0,-90,tstop,130,0,0,100,50)  // mT vs hT during burst b
+  g[4].view(0,-90,tstop,130,0,0,100,50)  // mT vs hT during burst c
+  box[1].intercept(0)
+  box[1].map("")
+  box[5].intercept(0)
+  box[5].map("")
+  box[6].intercept(1)                   // HBOX
+  xpanel("") xpanel()
+  g[5].view(0,-90,tstop,130,0,0,100,100)  // log(cai) vs mV
+  xpanel("") xpanel()
+  box[6].intercept(0)
+  box[6].map("")
+  box[0].intercept(0)
+  box[0].map("JNPhys 77:1688 Fig. 7")   // title
+  mksecvecs()
+  fillgrs()
+}
+
+//* fill graph segments with different colors
+objref colr,ltype,burst_beg,burst_end
+objref secbeg[6],secend[6], logca
+{ltype=new Vector(0) colr=ltype.c burst_beg=ltype.c burst_end=ltype.c logca=ltype.c}
+for ii=0,5 {secbeg[ii]=new Vector(0) secend[ii]=new Vector(0)}
+burst_beg.append(614,1163,1698,2230,2759,3288,3817,4346,4875,5178)
+burst_end.append(640,1181,1719,2247,2781,3305,3842,4361,4910,5729)
+bnum=burst_beg.size
+revec(ltype,2,8,2,8,2,8,2,8,2,8,2,8)
+revec(colr ,7,1,2,3,4,5,6,7,8,9,0,0)
+
+proc mksecvecs () {
+  tvec.resize(printlist.object(0).vec.size)
+  tvec.indgen  tvec.mul(printStep)  
+  logca.copy(printlist.object(2).vec)
+  logca.apply("log10")
+
+  secbeg[0].copy(burst_end) secbeg[0].insrt(0,0) // t vs RE
+  secend[0].copy(burst_end) secend[0].append(tstop)    
+  secbeg[1].copy(secbeg[0]) secend[1].copy(secend[0])  // t vs TC same
+  secbeg[2].copy(burst_end) secbeg[2].insrt(0,0) // RE mT vs hT for interburst intervals
+  secend[2].copy(burst_beg) secend[2].remove(0) secend[2].insrt(0,10) pushvec(secend[2],tstop)
+  secbeg[2].add(0) secend[2].add(-10) // move away from the spikes
+  revec(secbeg[3],10) revec(secend[3],-10)  // first burst
+  for (ii=1;ii<9;ii+=2) { secbeg[3].append(burst_beg.x[ii],10) secend[3].append(burst_end.x[ii],-10) }
+  secbeg[3].add(-10) secend[3].add(10) 
+  secbeg[3].append(0,0) secend[3].append(0,0)
+  revec(secbeg[4]) revec(secend[4])
+  for (ii=0;ii<9;ii+=2) { secbeg[4].append(burst_beg.x[ii],10) secend[4].append(burst_end.x[ii],-10) }
+  secbeg[4].add(-10) secend[4].add(10) 
+  secbeg[4].append(0) secend[4].append(0)
+  secbeg[5].copy(secbeg[2]) secend[5].copy(secend[2])
+}
+  
+proc fillgrs () { local ii
+  for ii=0,5 { g[ii].erase g[ii].exec_menu("NewView") }
+  for scase("A1","A2","Ba","Bb","Bc","C") g[i1].label(0.5,0.8,temp_string_)
+  // RE and TC voltage graphs
+  // printlist.object(1).vec.plot(g[0],printStep)  // RE v
+  splitgrit(0,tvec,printlist.object(1).vec) // RE v
+  g[0].size(0,tstop,-90,50)
+  // printlist.object(0).vec.plot(g[1],printStep)  // TC v
+  splitgrit(1,tvec,printlist.object(0).vec) // TC v
+  g[1].size(0,tstop,-90,50)
+
+  // RE mT vs hT for interburst intervals
+  // printlist.object(4).vec.plot(g[2],printlist.object(3).vec)  // RE mT vs hT
+  splitgrit(2,printlist.object(3).vec,printlist.object(4).vec)
+  g[2].size(0.05,0.2,0.04,0.16)
+
+  // the two different bursts
+  splitgrit(3,printlist.object(3).vec,printlist.object(4).vec)
+  g[3].yaxis(2)
+  g[3].size(0.1,1.0,0.04,0.16)
+  splitgrit(4,printlist.object(3).vec,printlist.object(4).vec)
+  g[4].yaxis(2)
+  g[4].size(0.1,1.0,0.04,0.16)
+
+  // printlist.object(1).vec.plot(g[5],logca)
+  splitgrit(5,logca,printlist.object(1).vec)
+  g[5].size(-4.8,-3.75,-74,-62)
+}
+
+// splitgrit (grnum,xvec,yvec)
+proc splitgrit () { local ob,gr,p0,p1,sp
+  gr=$1  sp=printStep
+  p0=p1=allocvecs(2) p1+=1 // temporary vectors
+  for vtr2(&x,&y,secbeg[gr],secend[gr]) { 
+    mso[p0].resize(0) mso[p1].resize(0)
+    mso[p0].copy($o2,x/sp,y/sp)
+    mso[p1].copy($o3,x/sp,y/sp)
+    mso[p1].line(g[gr],mso[p0],colr.x[i1],ltype.x[i1])
+  }
+  dealloc(p0)
+}
+
+ssstep=10
+tsec=tt=0
+disp_delay=1  // set to higher number, eg 1e4 if wish to display more slowly
+proc simsim () { local ii
+  for ii=0,5 { g[ii].erase_all g[ii].exec_menu("NewView") }
+  for scase("A1","A2","Ba","Bb","Bc","C") g[i1].label(0.5,0.8,temp_string_)
+
+  for tsec=0,secbeg[0].size-1 {
+    for (tt=secbeg[0].x[tsec];tt<secend[0].x[tsec]+ssstep;tt+=ssstep) {
+      for ii=0,5 g[ii].flush doEvents()
+      for ii=0,disp_delay sqrt(2) // delay loop if needed
+      // RE and TC voltage graphs
+      splgrt(0,tvec,printlist.object(1).vec) // RE v
+      splgrt(1,tvec,printlist.object(0).vec) // TC v
+      // RE mT vs hT for interburst intervals
+      splgrt(2,printlist.object(3).vec,printlist.object(4).vec)
+      // the two different bursts
+      if (secend[3].x[tsec]!=0) splgrt(3,printlist.object(3).vec,printlist.object(4).vec)
+      if (secend[4].x[tsec]!=0) splgrt(4,printlist.object(3).vec,printlist.object(4).vec)
+      splgrt(5,logca,printlist.object(1).vec)
+    }
+  }
+}
+
+// splgrt (grnum,xvec,yvec,startvec,endvec,time)
+proc splgrt () { local gr,sp,bt,et
+  gr=$1 sp=printStep
+  bt=secbeg[gr].x[tsec] et=secend[gr].x[tsec] // beginning and end
+  if (tt>=bt && tt<et-1) {
+    ind.resize(0) vec.resize(0)
+    ind.copy($o2,tt/sp,(tt+ssstep)/sp)
+    vec.copy($o3,tt/sp,(tt+ssstep)/sp)
+    vec.line(g[gr],ind,colr.x[tsec],ltype.x[tsec])
+  }
+}

@@ -1,0 +1,28 @@
+// $Id: init.hoc,v 1.5 2002/04/18 19:38:26 billl Exp $
+// ancillary stuff to be done on start-up
+// FROM 98oct18.15 [40.133.106.246]
+// mod/$CPU/special init.hoc -
+
+strdef simname, output_file, datestr, uname, comment, osname
+simname = "sim"
+runnum = 15
+datestr = "94oct22"
+output_file = "94oct22.01"
+uname = "i586"
+osname = "Linux"
+
+xwindows=1
+// ancillary stuff to be done on start-up
+
+xopen("nrnoc.hoc")
+xopen("simctrl.hoc")
+graph_flag = 1
+xopen("grvec.hoc")
+
+xopen("geom.hoc")
+xopen("network.hoc")
+xopen("params.hoc")
+xopen("run.hoc")
+
+run()
+fig7box()

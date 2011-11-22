@@ -1,0 +1,131 @@
+/* $Id: geom.hoc,v 1.5 1994/10/05 18:28:14 billl Exp $ */
+
+print " "
+print " << defining templates: REcell, TCcell, Tcol >> "
+print " "
+
+// DO NOT TOUCH "tiers" outside this file
+// after loading geom.hoc it is hard-wired
+tiers = 1  // number of tiers of TC cells in a column
+func ftiers() {return tiers}  // to communicate with templates
+
+/*--------------------------------------------------------------
+	TEMPLATE FILE FOR RE CELL
+--------------------------------------------------------------*/
+
+begintemplate REcell		/* create a new template object... */
+public soma, slgaba, srgaba, sglu, slglu, srglu, tiers
+external ftiers
+
+create soma
+
+tiers = ftiers()
+objectvar sglu[tiers]  // syns within column
+objectvar slglu  // syns to left sided column
+objectvar srglu  // syns to right sided column
+objectvar slgaba  // syns to RE left
+objectvar srgaba  // syns to RE right
+
+proc init() { local v_potassium, v_sodium
+
+  tiers = ftiers()
+  v_potassium = -95	/* potassium reversal potential */
+  v_sodium = 50		/* sodium reversal potential */
+
+  soma {
+	Ra = 100		/* geometry */
+	nseg = 1
+	diam = 10
+	L = 31.831  		/* such as surface = 1000 um2 */
+  }
+
+  slgaba = new GABALOW()   // have to be connected from outside
+  soma slgaba.loc(0.5)	// hook for L col
+  srgaba = new GABALOW()	// hook for R col
+  soma srgaba.loc(0.5)
+
+  slglu = new AMPA()   // have to be connected from outside
+  soma slglu.loc(0.5)	// hook for L col
+  srglu = new AMPA()	// hook for R col
+  soma srglu.loc(0.5)
+    
+  for(i=0; i<tiers; i=i+1) {
+    sglu[i] = new AMPA()         /* internal connect */
+    soma sglu[i].loc(0.5)
+  }
+}
+
+endtemplate REcell
+
+/*--------------------------------------------------------------
+	TEMPLATE FILE FOR TC CELL
+--------------------------------------------------------------*/
+
+begintemplate TCcell		/* create a new template object... */
+public soma, sgaba, sgabab, slgaba, srgaba, tier
+
+create soma
+objectvar sgaba, sgabab, slgaba, srgaba                  // single retic input
+
+proc init() { local v_potassium, v_sodium
+
+  tier = $1
+
+  v_potassium = -95	/* potassium reversal potential */
+  v_sodium = 50		/* sodium reversal potential */
+
+  soma {
+	Ra = 100		/* geometry */
+	nseg = 1
+	diam = 10
+	L = 31.831  		/* such as surface = 1000 um2 */
+  }
+
+  // cell 0 receives projection from L, doesn't project out of col
+  if (tier == 0) {
+    slgaba = new GABALOW()  // have to be connected from outside
+    soma slgaba.loc(0.5)	/* hook for L col */
+  } 
+
+  // cell 1 receives projection from R, projects to L
+  // cell 2 receives no lat projection, projects to R
+  if (tier == 1) {
+    srgaba = new GABALOW()	/* hook for R col */
+    soma srgaba.loc(0.5)
+  }
+
+  sgaba = new GABALOW()        /* projection from RE heading column */
+  soma sgaba.loc(0.5)
+  sgabab = new GABAB1()        /* projection from RE heading column */
+  soma sgabab.loc(0.5)
+
+}
+endtemplate TCcell
+
+/*--------------------------------------------------------------
+	TEMPLATE FILE FOR DEFINING THALAMIC COLUMN
+--------------------------------------------------------------*/
+
+begintemplate Tcol
+public re, tc, tiers, col
+external ftiers
+
+tiers = ftiers()
+objectvar re, tc[tiers]
+
+proc init() { local i
+  col = $1
+  tiers = ftiers()
+  re = new REcell()
+  for(i=0; i<tiers; i=i+1) {
+    tc[i] = new TCcell(i)
+  }
+  // provide the connectivity within the column
+  for(i=0; i<tiers; i=i+1) {
+    setpointer re.sglu[i].pre, tc[i].soma.v(0.5) /* presynaptic is TC */    
+    setpointer tc[i].sgaba.pre, re.soma.v(0.5)	 /* presynaptic is RE */
+    setpointer tc[i].sgabab.pre, re.soma.v(0.5)	 /* presynaptic is RE */
+  }
+}
+endtemplate Tcol
+

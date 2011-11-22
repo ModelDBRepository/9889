@@ -1,0 +1,8 @@
+load_file("nrngui.hoc")
+xpanel("Wait til t=6000")
+xvalue("t")
+xpanel(100, 200)
+doNotify()
+cnt = PWManager[0].count-1
+load_file("init.hoc")
+PWManager[0].close(cnt)

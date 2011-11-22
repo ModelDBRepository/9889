@@ -1,0 +1,104 @@
+* simulation from:
+Lytton WW; Contreras D; Destexhe A; Steriade M. Dynamic interactions
+determine partial thalamic quiescence in a computer network model of
+spike-and-wave seizures. J Neurophysiol, 77:1679-1696, 1997.
+Fig 7 on p 1688  (jnphys77:1679.pdf)
+
+Simulation of figure 7 may take several minutes. fig7.gif shows the output of
+the simulation.
+
+A phase plane analysis of a two cell interaction between a
+thalamocortical neuron (TC) and a thalamic reticularis neuron (RE).
+Figure legend : Analysis of spontaneous transition from mutual to
+quiescent mode with bursting viewed in the RE T-channel m/h plane.
+  A. RE neuron voltage trace (A1) and TC voltage trace (A2) shows 8
+bursts of mutual activity followed by switch into the quiescent
+state.  Color for each cycle give the key for the phase planes
+below.  Interburst intervals are depicted in panel Ba.  Alternating
+bursts are shown in panels Bb and Bc.  Initial oscillation appears
+to be approximately period-2 with burst alternating with an
+interburst depolarization.
+  B. Apparent approximate period-2 oscillation illustrated to be
+period-4: four cycles occur before the cycle repeats.  In each phase
+plane, abscissa gives the value of mT (T channel activation),
+ordinate the value of hT (T channel inactivation).  
+Trajectories run counterclockwise.  Interbursts alternated
+between large cycles (solid line type) and small cycles (dashed line type)
+  Burst Bb
+showed a progression of gradually increasing hT, while burst Bc
+was more coherent and showed no regular shift.  The inner loop in Ba
+gradually collapsed to terminate the oscillation.  The subsequent
+interburst (grey dashed) was similar in extent to large cycle.
+  C. Inner and outer interburst cycles seen in the voltage-calcium plane
+corresponded to Ba-inner and Ba-outer respectively.  The collapse of the inner
+cycle is not as clear as in Ba, however.  Trajectories run clockwise.
+
+* COMPILE and RUN:
+  nrnivmodl
+RUN: 
+  $CPU/special init.hoc -
+RE-RUN:
+  simsim() allows you to simulate a simulation by graphing out the
+    saved data slowly so that you can see the phase planes unfold in time
+    (can be slowed down by setting disp_delay to a large number)
+
+* notes
+1) graphics box comes up with graphs set to "New View" to allow closer
+inspection of phase planes
+2) use 'vecpanel()' call to bring up interactive tool for generating
+other graphics
+3) original figure only showed data from about t=600 rather than from beginning
+
+* hoc list: from ~/nrniv/tcre2 geom.hoc v5, network.hoc v39, params.hoc v108
+ run.hoc v105
+
+init.hoc    master hoc file
+geom.hoc    defines single compartment cells and column
+network.hoc creates cells, connectivity and stimulation
+params.hoc  sets parameters
+run.hoc     additional initialization routines, graphing
+
+boxes.hoc   make large arrays of graphs. not used here due to
+specialized layout
+declist.hoc list handling routines
+decvec.hoc  vector handling routines
+default.hoc flags and values
+grvec.hoc   main vector graphic routines
+local.hoc   additional initialization routines
+nrnoc.hoc   main initialization routines
+simctrl.hoc simulation control package using RCS
+
+* mod list
+HH_traub.mod            SUFFIX hh2
+IAHP_destexhe.mod:      SUFFIX iahp
+ICAN_destexhe.mod:      SUFFIX ican
+IT2_huguenard.mod:      SUFFIX it2
+IT_wang.mod             SUFFIX it
+Ih_old.mod:             SUFFIX iar
+calciumpump_destexhe.mod SUFFIX cad
+gen.mod:                POINT_PROCESS gen
+nmda.mod:               POINT_PROCESS NMDA
+passiv.mod:             SUFFIX Pass
+presyn.mod:             POINT_PROCESS PRESYN
+pulse.mod:              POINT_PROCESS PULSE
+AMPA.mod                POINT_PROCESS AMPA
+NMDA.mod                POINT_PROCESS NMDA
+GABAB1.mod              POINT_PROCESS GABAB1
+GABALOW.mo              POINT_PROCESS GABALOW
+rand.mod:               SUFFIX nothing
+
+* mechanisms and processes used
+Pass     leak current 
+hh2      Hodgin-Huxley INa and IK 
+it       TC IT current 
+iar      Ih current 
+it2      reticular IT current 
+iahp     slow IAHP 
+ican     slow ICAN 
+cad      calcium pump 
+
+gen      random spike generator
+AMPA
+NMDA
+IClamp
+

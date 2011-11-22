@@ -1,0 +1,148 @@
+// $Id: params.hoc,v 1.108 2002/07/04 17:08:46 billl Exp $
+
+/*--------------------------------------------*/
+/*         GENERAL PARAMETERS                 */
+/*--------------------------------------------*/
+
+
+celsius = 36            /* temperature */
+dt = 0.05
+tstop = 6000
+
+vrest   = 1000          /* initial voltage */
+vrestRE = -70
+vrestTC = -69
+
+v_potassium = -95       /* potassium reversal potential */
+v_sodium = 50           /* sodium reversal potential */
+v_calcium = 120         /* calcium reversal potential */
+v_glutamate = 0         /* excitatory synaptic reversal potential */
+v_gaba = -80            /* inhibitory synaptic reversal potential */
+camin   = 1e-8          /* minimal intracellular concentration */
+shift = 2               /* shift for screening charge */
+Rax = 100
+
+batch = 0               /* batch mode: 1=batch, 0=interactive */
+print_flag = 0
+
+forall { Ra = Rax }
+
+/*--------------------------------------------*/
+/*  INTRINSIC CURRENTS AND CALCIUM DIFFUSION  */
+/*--------------------------------------------*/
+
+forsec "TC" {
+
+  insert Pass           /* leak current */
+  erev_Pass = 100         /* to be set */
+  g_Pass = 5e-5
+
+  insert hh2            /* Hodgin-Huxley INa and IK */
+  ek = v_potassium
+  ena = v_sodium
+  vtraub_hh2 = -55
+  gnabar_hh2 = 0.03
+  gkbar_hh2 = 0.002
+
+  insert it             /* TC IT current */
+  cai = 2.4e-4 
+  cao = 2 
+  eca = 120
+  shift_it = 2
+  gcabar_it = 0.001
+
+  insert iar            /* Ih current */
+  eh=-43 
+  nexp_iar = 2
+  cac_iar = 5e-4
+  k2_iar = 4e-4
+  ghbar_iar = 1.2e-4
+
+  insert cad            /* calcium pump */
+  kd_cad = 1e-4
+  kt_cad = 1e-4
+  depth_cad = 1
+  taur_cad = 1e10
+}
+
+forsec "RE" {
+  insert Pass           /* leak current */
+  erev_Pass = 100         /* to be set */
+  g_Pass = 5e-5
+
+  insert hh2            /* Hodgin-Huxley INa and IK */
+  ek = v_potassium
+  ena = v_sodium
+  vtraub_hh2 = -55
+  gnabar_hh2 = 0.1
+  gkbar_hh2 = 0.01
+
+  insert it2            /* reticular IT current */
+  cai = 2.4e-4 
+  cao = 2 
+  eca = 120 
+  shift_it2 = 2
+  gcabar_it2 = 0.00175
+
+  insert iahp           /* slow IAHP */
+  cac_iahp = 0.025
+  beta_iahp = 0.03
+  taumin_iahp = 0.1
+  ek=v_potassium
+  gkbar_iahp = 0.005
+
+  insert ican           /* slow ICAN */
+  cac_ican = 0.01
+  beta_ican = 0.002
+  taumin_ican = 0.1
+  en=-20
+  gbar_ican = 0.00035
+
+  insert cad            /* calcium pump */
+  kd_cad = 1e-4
+  kt_cad = 1e-4
+  depth_cad = 1
+  taur_cad = 1e10
+}
+
+/*--------------------------------------------*/
+/*          SYNAPSE PARAMETERS                */
+/*--------------------------------------------*/
+
+Deadtime_AMPA = 1
+Alpha_AMPA = 1.1                                /* VALUES FITTED FROM PSC */
+Beta_AMPA = 0.19
+Erev_AMPA = v_glutamate
+
+Deadtime_GABALOW = 1
+Alpha_GABALOW = 0.53                    /* VALUES FITTED FROM PSC */
+Beta_GABALOW = 0.18
+Erev_GABALOW = -90                      /* Huguenard */
+
+for (i=0;i<cols;i=i+1) {
+  for (j=0;j<tiers;j=j+1) {
+    col[i].re.sglu[j].gmax = 0.002     /* glu synapses belong to re cells */
+    col[i].tc[j].sgaba.gmax = 0.002    /* gaba synapses belong to tc cells */
+    col[i].tc[j].sgabab.gmax = 0.004    /* gaba synapses belong to tc cells */
+  }
+}
+
+/*--------------------------------------------*/
+/*          STIMULUS PARAMETERS               */
+/*--------------------------------------------*/
+
+pg.fast_invl = 10       // fast interval (mean time between spikes)
+pg.slow_invl = 3000     // slow interval (mean interburst; 0=tonic)
+pg.burst_len = 5        // length of bursts (mean number of spikes per burst)
+pg.noise = 0            // rel. level of noise (0=periodic; 1=totally noisy)
+pg.start = 1e9
+pg.end = 1e10
+
+for (i=0;i<cols;i=i+1) {
+  sreinamp[i].gmax = 0.0002
+  sreinnm[i].gmax = 0.002
+  for (j=0;j<tiers;j=j+1) {
+    ij = i*cols+j  // count through cols and tiers
+    stcin[ij].gmax = 0.002
+  }
+} 

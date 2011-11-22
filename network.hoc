@@ -1,0 +1,102 @@
+// $Id: network.hoc,v 1.39 2002/07/04 17:02:07 billl Exp $
+
+proc networkfile() { }                       // For remote loading
+
+/*--------------------------------------------------*/
+/*  GEOMETRY: define cells and synaptic connections */
+/*--------------------------------------------------*/
+
+cols = 1  // columns are assumed to be controlled by a single re cell
+// tiers : defined in geom.hoc for use in template
+//         gives number of tc cells in a column
+objectvar col[cols]
+
+for (i=0;i<cols;i=i+1) {
+  col[i] = new Tcol(i)
+}
+
+/*----------------*/
+/*  CONNECTIVITY  */
+/*----------------*/
+
+create nullseg
+access nullseg
+v = -1000
+
+// provide connectivity between columns
+// each tc projects to either side
+// so the connections are into the re cells in each col
+proc latconnect () { local lt, rt
+  for (i=0;i<cols;i=i+1) {
+    lt = (i - 1)%cols  // col to the left
+    rt = (i + 1)%cols  // col to the right
+    
+    // gaba syns in re's point back to neighboring re's
+    setpointer col[i].re.srgaba.pre, nullseg.v(0.5)	// re <- re(R)
+    setpointer col[i].re.slgaba.pre, nullseg.v(0.5)	// re <- re(L)
+
+    // glu syns in re's point back to tc's
+    setpointer col[i].re.srglu.pre, nullseg.v(0.5)	// re <- tc1(R)
+    setpointer col[i].re.slglu.pre, nullseg.v(0.5)	// re <- tc2(L)
+    
+    // gaba syns in tc's point back to re's
+    setpointer col[i].tc[0].slgaba.pre, nullseg.v(0.5)	// tc0 <- re(L)
+//    setpointer col[i].tc[1].srgaba.pre, nullseg.v(0.5)	// tc1 <- re(R)
+
+  }
+}
+    
+latconnect() 
+
+/*----------------*/
+/*  STIMULATION   */
+/*----------------*/
+
+access nullseg  // arbitrary choice to locate fake presynaptic compartment
+
+objectvar pg
+pg = new gen(0.5)   	// create random spike generator
+
+// for now leave the stimulation syns out of the template
+objectvar sreinamp[cols], sreinnm[cols], stcin[cols*tiers]
+
+proc stimul () { local i,j,ij
+  for(i=0; i<cols; i=i+1) {
+    sreinamp[i] = new AMPA()
+    col[i].re.soma sreinamp[i].loc(0.5)		/* postsynaptic is RE */
+    setpointer sreinamp[i].pre, pg.x	        /* generator */
+    
+    sreinnm[i] = new NMDA()
+    col[i].re.soma sreinnm[i].loc(0.5)		/* postsynaptic is RE */
+    setpointer sreinnm[i].pre, pg.x	        /* generator */
+    
+    for(j=0; j<tiers; j=j+1) {
+      ij = i*cols+j  // count through cols and tiers
+      stcin[ij] = new AMPA()
+      col[i].tc[j].soma stcin[ij].loc(0.5)		/* postsynaptic is RE */
+      setpointer stcin[ij].pre, pg.x	        /* generator */
+    }
+  }
+}
+
+stimul()
+
+// col[0].tc[0].soma setsyn(0,0,600,-0.01,0,0,0,3)
+// col[0].tc[0].soma setsyn(0,0,1e10,-0.01,0,5,0,1)
+access col[0].tc[0].soma
+
+func alphafunc () { return imax*($1/taualf) * exp(-($1-taualf)/taualf) }
+func expdecf () { return imax*exp(-$1/taualf) }
+proc mkstimv () {
+  vec.indgen(0,600,dt)
+  // vec.apply("alphafunc")
+  vec.apply("expdecf")
+}
+imax=-0.015
+taualf=200
+mkstimv()
+
+objref icl
+icl = new IClamp(0.5)
+icl.amp = -0.01 
+icl.dur=600
