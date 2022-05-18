@@ -102,3 +102,5 @@ AMPA
 NMDA
 IClamp
 
+---
+2022-05-18: fixing rand.mod for Neuron9.0
