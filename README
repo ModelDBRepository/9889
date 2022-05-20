@@ -102,5 +102,7 @@ AMPA
 NMDA
 IClamp
 
----
-2022-05-18: fixing rand.mod for Neuron9.0
+Changelog
+---------
+2022-05: Updated MOD files to contain valid C++ and be compatible with the
+         upcoming versions 8.2 and 9.0 of NEURON.

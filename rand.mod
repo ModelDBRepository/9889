@@ -43,7 +43,6 @@ NEURON {
 VERBATIM
 #include <stdlib.h>
 #include <math.h>
-/* #include <values.h> /* contains MAXLONG */
 #include <limits.h> /* contains MAXLONG */
 
 /* Michael Hines fix for cygwin on mswin */
@@ -95,7 +94,7 @@ FUNCTION fran(l, h) { : returns random number between low and high
 VERBATIM
 {
 	int low, high;
-    double num, imax, *getarg();
+	double num, imax;
     
 	low = (int)_ll;
 	high = (int)_lh;
