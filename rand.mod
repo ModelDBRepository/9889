@@ -43,7 +43,6 @@ NEURON {
 VERBATIM
 #include <stdlib.h>
 #include <math.h>
-/* #include <values.h> /* contains MAXLONG */
 #include <limits.h> /* contains MAXLONG */
 
 /* Michael Hines fix for cygwin on mswin */
@@ -54,7 +53,7 @@ VERBATIM
 /* some machines do not have drand48 and srand48 so use the implementation
 at the end of this file */
 extern double my_drand48();
-extern void my_srand48();
+extern void my_srand48(long);
 #undef drand48
 #undef srand48
 #define drand48 my_drand48
@@ -95,7 +94,7 @@ FUNCTION fran(l, h) { : returns random number between low and high
 VERBATIM
 {
 	int low, high;
-    double num, imax, *getarg();
+	double num, imax;
     
 	low = (int)_ll;
 	high = (int)_lh;
@@ -119,7 +118,6 @@ VERBATIM
     static int iset = 0;
     static float gset;
     float fac, r , v1, v2;
-    double sqrt();
 
     if (iset == 0) {
         do {
@@ -222,8 +220,7 @@ next()
 }
 
 void
-my_srand48(seedval)
-long seedval;
+my_srand48(long seedval)
 {
 	SEED(X0, LOW(seedval), HIGH(seedval));
 }
