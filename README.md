@@ -30,63 +30,61 @@ RE-RUN:
 3. Original figure only showed data from about t=600 rather than from beginning
 
 ## hoc list: from ~/nrniv/tcre2
-- geom.hoc v5
-- network.hoc v39
-- params.hoc v108
+- geom.hoc v5  
+- network.hoc v39  
+- params.hoc v108  
 - run.hoc v105
 
-- init.hoc: master hoc file
-- geom.hoc: defines single compartment cells and column
-- network.hoc: creates cells, connectivity and stimulation
-- params.hoc: sets parameters
-- run.hoc: additional initialization routines, graphing
+- init.hoc: master hoc file  
+- geom.hoc: defines single compartment cells and column  
+- network.hoc: creates cells, connectivity and stimulation  
+- params.hoc: sets parameters  
+- run.hoc: additional initialization routines, graphing  
 
-- boxes.hoc: make large arrays of graphs. Not used here due to specialized layout
-- declist.hoc: list handling routines
-- decvec.hoc: vector handling routines
-- default.hoc: flags and values
-- grvec.hoc: main vector graphic routines
-- local.hoc: additional initialization routines
-- nrnoc.hoc: main initialization routines
-- simctrl.hoc: simulation control package using RCS
+- boxes.hoc: make large arrays of graphs. Not used here due to specialized layout  
+- declist.hoc: list handling routines  
+- decvec.hoc: vector handling routines  
+- default.hoc: flags and values  
+- grvec.hoc: main vector graphic routines  
+- local.hoc: additional initialization routines  
+- nrnoc.hoc: main initialization routines  
+- simctrl.hoc: simulation control package using RCS  
 
 ## mod list
-| MOD file                 | Type                       |
-|-------------------------|----------------------------|
-| HH_traub.mod             | SUFFIX hh2                 |
-| IAHP_destexhe.mod        | SUFFIX iahp                |
-| ICAN_destexhe.mod        | SUFFIX ican                |
-| IT2_huguenard.mod        | SUFFIX it2                 |
-| IT_wang.mod              | SUFFIX it                  |
-| Ih_old.mod               | SUFFIX iar                 |
-| calciumpump_destexhe.mod | SUFFIX cad                 |
-| gen.mod                  | POINT_PROCESS gen          |
-| nmda.mod                 | POINT_PROCESS NMDA         |
-| passiv.mod               | SUFFIX Pass                |
-| presyn.mod               | POINT_PROCESS PRESYN       |
-| pulse.mod                | POINT_PROCESS PULSE        |
-| AMPA.mod                 | POINT_PROCESS AMPA         |
-| NMDA.mod                 | POINT_PROCESS NMDA         |
-| GABAB1.mod               | POINT_PROCESS GABAB1       |
-| GABALOW.mo               | POINT_PROCESS GABALOW      |
-| rand.mod                 | SUFFIX nothing             |
+- HH_traub.mod: SUFFIX hh2  
+- IAHP_destexhe.mod: SUFFIX iahp  
+- ICAN_destexhe.mod: SUFFIX ican  
+- IT2_huguenard.mod: SUFFIX it2  
+- IT_wang.mod: SUFFIX it  
+- Ih_old.mod: SUFFIX iar  
+- calciumpump_destexhe.mod: SUFFIX cad  
+- gen.mod: POINT_PROCESS gen  
+- nmda.mod: POINT_PROCESS NMDA  
+- passiv.mod: SUFFIX Pass  
+- presyn.mod: POINT_PROCESS PRESYN  
+- pulse.mod: POINT_PROCESS PULSE  
+- AMPA.mod: POINT_PROCESS AMPA  
+- NMDA.mod: POINT_PROCESS NMDA  
+- GABAB1.mod: POINT_PROCESS GABAB1  
+- GABALOW.mo: POINT_PROCESS GABALOW  
+- rand.mod: SUFFIX nothing  
 
 ## Mechanisms and processes used
-- Pass: leak current
-- hh2: Hodgkin-Huxley INa and IK
-- it: TC IT current
-- iar: Ih current
-- it2: reticular IT current
-- iahp: slow IAHP
-- ican: slow ICAN
-- cad: calcium pump
+- Pass: leak current  
+- hh2: Hodgkin-Huxley INa and IK  
+- it: TC IT current  
+- iar: Ih current  
+- it2: reticular IT current  
+- iahp: slow IAHP  
+- ican: slow ICAN  
+- cad: calcium pump  
 
-- gen: random spike generator
-- AMPA
-- NMDA
-- IClamp
+- gen: random spike generator  
+- AMPA  
+- NMDA  
+- IClamp  
 
-Changelog
----------
+## Changelog
 2022-05: Updated MOD files to contain valid C++ and be compatible with the upcoming versions 8.2 and 9.0 of NEURON.
-2025-05-27 – Standardized to Markdown.
+
+2025-05-27: Standardized to Markdown.
